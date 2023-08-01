@@ -402,6 +402,7 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
       this.loadFrequenciesData(this.frequenciesDataUrl)
     } else {
       this.drawSpectrogram(this.getFrequencies(this.wavesurfer?.getDecodedData()))
+      console.log("Drawing from url")
     }
   }
 
@@ -419,8 +420,8 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
     this.canvas.height = this.height * frequenciesData.length
 
     const spectrCc = this.spectrCc
-    const height = this.height
-    const width = this.width
+    let height = this.height
+    let width = this.width
     const freqFrom = this.buffer.sampleRate / 2
     const freqMin = this.frequencyMin
     const freqMax = this.frequencyMax
@@ -428,35 +429,47 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
     if (!spectrCc) {
       return
     }
-
     for (let c = 0; c < frequenciesData.length; c++) {
       // for each channel
-      const pixels = this.resample(frequenciesData[c])
+      // const pixels = this.resample(frequenciesData[c])
+      const pixels = frequenciesData[c]
+      height = pixels[0].length
+      width = pixels.length
+      console.log("height is",height, " width ",width)
       const imageData = new ImageData(width, height)
-
       for (let i = 0; i < pixels.length; i++) {
         for (let j = 0; j < pixels[i].length; j++) {
+
+
           const colorMap = this.colorMap[pixels[i][j]]
           const redIndex = ((height - j) * width + i) * 4
+          console.log("Getting for ",i,j,redIndex)
           imageData.data[redIndex] = colorMap[0] * 255
           imageData.data[redIndex + 1] = colorMap[1] * 255
           imageData.data[redIndex + 2] = colorMap[2] * 255
           imageData.data[redIndex + 3] = colorMap[3] * 255
+          // return
+          // console.log(imageData.data)
+          if (pixels[i][j]>0){
+          console.log("Looking up color map raw pixels are",pixels[i][j],"CMP", this.colorMap[pixels[i][j]],"PIXEL IS",imageData.data[redIndex],imageData.data[redIndex+1],imageData.data[redIndex+2])
+          return
+        }
+        return
         }
       }
-
+      // console.log("Creating bitmap ", height, freqMax, freqMin,freqFrom,"becomes",height * (1 - freqMax / freqFrom),  (height * (freqMax - freqMin)) / freqFrom,imageData)
       // scale and stack spectrograms
       createImageBitmap(imageData).then((renderer) => {
         spectrCc.drawImage(
           renderer,
           0,
-          height * (1 - freqMax / freqFrom), // source x, y
+        0,
           width,
-          (height * (freqMax - freqMin)) / freqFrom, // source width, height
-          0,
-          height * c, // destination x, y
-          width,
-          height, // destination width, height
+          height,
+          this.width,
+          this.height * c, // destination x, y
+          this.width,
+          this.height, // destination width, height
         )
       })
     }
@@ -481,7 +494,6 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
     const channels = this.options.splitChannels ?? this.wavesurfer?.options.splitChannels ? buffer.numberOfChannels : 1
 
     this.frequencyMax = this.frequencyMax || buffer.sampleRate / 2
-
     if (!buffer) return
 
     this.buffer = buffer
@@ -495,6 +507,7 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
       const uniqueSamplesPerPx = buffer.length / this.canvas.width
       noverlap = Math.max(0, Math.round(fftSamples - uniqueSamplesPerPx))
     }
+    console.log("Channels",channels, " no overlap",noverlap)
 
     const fft = new FFT(fftSamples, sampleRate, this.windowFunc, this.alpha)
 
@@ -509,7 +522,12 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
         const spectrum = fft.calculateSpectrum(segment)
         const array = new Uint8Array(fftSamples / 2)
         for (let j = 0; j < fftSamples / 2; j++) {
+          // if( currentOffset == 0){
+          //   console.log("At offset ", currentOffset, " have sj",j,spectrum[j])
+          // }
           array[j] = Math.max(-255, Math.log10(spectrum[j]) * 45)
+          // console.log("adding", array[j],spectrum[j])
+          // return
         }
         channelFreq.push(array)
         // channelFreq: [sample, freq]
@@ -562,7 +580,6 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
     const labelIndex = 5 * (getMaxY / 256)
     const freqStart = this.frequencyMin
     const step = (this.frequencyMax - freqStart) / labelIndex
-
     // prepare canvas element for labels
     const ctx = this.labelsEl.getContext('2d')
     const dispScale = window.devicePixelRatio
@@ -570,6 +587,7 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
     this.labelsEl.width = bgWidth * dispScale
     ctx.scale(dispScale, dispScale)
 
+    const scale = this.height/(this.frequencyMax - this.frequencyMin);
     if (!ctx) {
       return
     }
@@ -594,12 +612,8 @@ class SpectrogramPlugin extends BasePlugin<SpectrogramPluginEvents, SpectrogramP
         const x = 16
         let y
 
-        if (i == 0) {
-          y = (1 + c) * getMaxY + i - 10
-        } else {
-          y = (1 + c) * getMaxY - i * 50 + yLabelOffset
-        }
-        // unit label
+        y = freq * scale
+        y = this.height -y - 10
         ctx.fillStyle = textColorUnit
         ctx.font = fontSizeUnit + ' ' + fontType
         ctx.fillText(units, x + 24, y)
