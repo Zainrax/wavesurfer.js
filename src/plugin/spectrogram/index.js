@@ -250,34 +250,22 @@ export default class SpectrogramPlugin {
 
     drawSpectrogram(frequenciesData, my) {
         const spectrCc = my.spectrCc;
-        const height = my.height;
-        const width = my.width;
-        const pixels = my.resample(frequenciesData);
-        const heightFactor = my.buffer ? 2 / my.buffer.numberOfChannels : 1;
+        const pixels = frequenciesData;
         if (spectrCc) {
-            const imageData = spectrCc.createImageData(width, height);
-            let i;
-            let j;
-            let k;
-
-            for (i = 0; i < pixels.length; i++) {
-                for (j = 0; j < pixels[i].length; j++) {
+            const height = pixels[0].length;
+            const width = pixels.length;
+            const imageData = new ImageData(width, height);
+            for (let i = 0; i < width; i++) {
+                for (let j = 0; j < height; j++) {
                     const colorMap = my.colorMap[pixels[i][j]];
-                    /* eslint-disable max-depth */
-                    for (k = 0; k < heightFactor; k++) {
-                        let y = height - j * heightFactor;
-                        if (heightFactor === 2 && k === 1) {
-                            y--;
-                        }
-                        const redIndex = y * (width * 4) + i * 4;
-                        imageData.data[redIndex] = colorMap[0] * 255;
-                        imageData.data[redIndex + 1] = colorMap[1] * 255;
-                        imageData.data[redIndex + 2] = colorMap[2] * 255;
-                        imageData.data[redIndex + 3] = colorMap[3] * 255;
-                    }
-                    /* eslint-enable max-depth */
+                    const redIndex = ((height - 1 - j) * width + i) * 4;
+                    imageData.data[redIndex] = colorMap[0] * 255;
+                    imageData.data[redIndex + 1] = colorMap[1] * 255;
+                    imageData.data[redIndex + 2] = colorMap[2] * 255;
+                    imageData.data[redIndex + 3] = colorMap[3] * 255;
                 }
             }
+
             spectrCc.putImageData(imageData, 0, 0);
         }
     }
@@ -379,6 +367,7 @@ export default class SpectrogramPlugin {
         const ctx = this.labelsEl.getContext('2d');
         this.labelsEl.height = this.height;
         this.labelsEl.width = bgWidth;
+        const scale = this.height / (this.frequencyMax - this.frequencyMin);
 
         if (ctx) {
             // fill background
@@ -400,29 +389,15 @@ export default class SpectrogramPlugin {
                 const units = this.unitType(freq);
                 const yLabelOffset = 2;
                 const x = 16;
-                let y;
-
-                if (i == 0) {
-                    y = getMaxY + i - 10;
-                    // unit label
-                    ctx.fillStyle = textColorUnit;
-                    ctx.font = fontSizeUnit + ' ' + fontType;
-                    ctx.fillText(units, x + 24, y);
-                    // freq label
-                    ctx.fillStyle = textColorFreq;
-                    ctx.font = fontSizeFreq + ' ' + fontType;
-                    ctx.fillText(label, x, y);
-                } else {
-                    y = getMaxY - i * 50 + yLabelOffset;
-                    // unit label
-                    ctx.fillStyle = textColorUnit;
-                    ctx.font = fontSizeUnit + ' ' + fontType;
-                    ctx.fillText(units, x + 24, y);
-                    // freq label
-                    ctx.fillStyle = textColorFreq;
-                    ctx.font = fontSizeFreq + ' ' + fontType;
-                    ctx.fillText(label, x, y);
-                }
+                let y = freq * scale;
+                y = this.height - y - 10;
+                ctx.fillStyle = textColorUnit;
+                ctx.font = fontSizeUnit + ' ' + fontType;
+                ctx.fillText(units, x + 24, y);
+                // freq label
+                ctx.fillStyle = textColorFreq;
+                ctx.font = fontSizeFreq + ' ' + fontType;
+                ctx.fillText(label, x, y);
             }
         }
     }
