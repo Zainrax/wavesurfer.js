@@ -265,8 +265,19 @@ export default class SpectrogramPlugin {
                     imageData.data[redIndex + 3] = colorMap[3] * 255;
                 }
             }
-
-            spectrCc.putImageData(imageData, 0, 0);
+            createImageBitmap(imageData).then((renderer) => {
+                spectrCc.drawImage(
+                    renderer,
+                    0,
+                    0,
+                    width,
+                    height,
+                    0,
+                    0,
+                    my.width,
+                    my.height, // destination width, height
+                );
+            });
         }
     }
 
@@ -367,8 +378,7 @@ export default class SpectrogramPlugin {
         const ctx = this.labelsEl.getContext('2d');
         this.labelsEl.height = this.height;
         this.labelsEl.width = bgWidth;
-        const scale = this.height / (this.frequencyMax - this.frequencyMin);
-
+        const scale = this.height / (this.wavesurfer.backend.ac.sampleRate / 2 );
         if (ctx) {
             // fill background
             ctx.fillStyle = bgFill;
@@ -382,9 +392,6 @@ export default class SpectrogramPlugin {
                 ctx.textBaseline = 'middle';
 
                 const freq = freqStart + step * i;
-                const index = Math.round(
-                    (freq / (this.sampleRate / 2)) * this.fftSamples
-                );
                 const label = this.freqType(freq);
                 const units = this.unitType(freq);
                 const yLabelOffset = 2;
