@@ -247,17 +247,31 @@ export default class SpectrogramPlugin {
         this.canvas.height = this.height;
         this.canvas.style.width = width;
     }
+    drawSpectrogram = async(frequenciesData) => {
+        if (!isNaN(frequenciesData[0][0])) {
+            // data is 1ch [sample, freq] format
+            // to [channel, sample, freq] format
+            frequenciesData = [frequenciesData];
+        }
 
-    drawSpectrogram(frequenciesData, my) {
-        const spectrCc = my.spectrCc;
-        const pixels = frequenciesData;
-        if (spectrCc) {
+        // Set the height to fit all channels
+        this.wrapper.style.height = this.height * frequenciesData.length + 'px';
+
+        this.canvas.width = this.width;
+        this.canvas.height = this.height * frequenciesData.length;
+
+        const spectrCc = this.spectrCc;
+        if (!spectrCc) {
+            return;
+        }
+        for (let c = 0; c < frequenciesData.length; c++) {
+            const pixels = frequenciesData[c];
             const height = pixels[0].length;
             const width = pixels.length;
             const imageData = new ImageData(width, height);
             for (let i = 0; i < width; i++) {
                 for (let j = 0; j < height; j++) {
-                    const colorMap = my.colorMap[pixels[i][j]];
+                    const colorMap = this.colorMap[pixels[i][j]];
                     const redIndex = ((height - 1 - j) * width + i) * 4;
                     imageData.data[redIndex] = colorMap[0] * 255;
                     imageData.data[redIndex + 1] = colorMap[1] * 255;
@@ -265,20 +279,34 @@ export default class SpectrogramPlugin {
                     imageData.data[redIndex + 3] = colorMap[3] * 255;
                 }
             }
-            createImageBitmap(imageData).then((renderer) => {
-                spectrCc.drawImage(
-                    renderer,
-                    0,
-                    0,
-                    width,
-                    height,
-                    0,
-                    0,
-                    my.width,
-                    my.height, // destination width, height
-                );
-            });
+
+            const renderer = await createImageBitmap(imageData);
+            await spectrCc.drawImage(
+                renderer,
+                0,
+                0,
+                width,
+                height,
+                0,
+                0,
+                this.width,
+                this.height, // destination width, height
+            );
         }
+
+        this.loadLabels(
+            this.options.labelsBackground,
+            '12px',
+            '12px',
+            '',
+            this.options.labelsColor,
+            this.options.labelsHzColor || this.options.labelsColor,
+            'center',
+            '#specLabels',
+            frequenciesData.length,
+        );
+
+        this.emit('ready');
     }
 
     getFrequencies(callback) {
