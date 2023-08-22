@@ -1,5 +1,5 @@
 /*!
- * wavesurfer.js spectrogram plugin 5.2.0 (2023-08-09)
+ * wavesurfer.js spectrogram plugin 5.2.0 (2023-08-22)
  * https://wavesurfer-js.org
  * @license BSD-3-Clause
  */
@@ -283,7 +283,7 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
               }
 
               // Set the height to fit all channels
-              _this.wrapper.style.height = _this.height * frequenciesData.length + 'px';
+              _this.wrapper.style.height = _this.height * frequenciesData.length + "px";
               _this.canvas.width = _this.width;
               _this.canvas.height = _this.height * frequenciesData.length;
               spectrCc = _this.spectrCc;
@@ -296,7 +296,7 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
               c = 0;
             case 8:
               if (!(c < frequenciesData.length)) {
-                _context.next = 22;
+                _context.next = 21;
                 break;
               }
               pixels = frequenciesData[c];
@@ -317,17 +317,13 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
               return createImageBitmap(imageData);
             case 16:
               renderer = _context.sent;
-              _context.next = 19;
-              return spectrCc.drawImage(renderer, 0, 0, width, height, 0, 0, _this.width, _this.height // destination width, height
+              spectrCc.drawImage(renderer, 0, 0, width, height, 0, 0, _this.width, _this.height // destination width, height
               );
-            case 19:
+            case 18:
               c++;
               _context.next = 8;
               break;
-            case 22:
-              _this.loadLabels(_this.options.labelsBackground, '12px', '12px', '', _this.options.labelsColor, _this.options.labelsHzColor || _this.options.labelsColor, 'center', '#specLabels', frequenciesData.length);
-              _this.emit('ready');
-            case 24:
+            case 21:
             case "end":
               return _context.stop();
           }
@@ -352,18 +348,18 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
     };
     this._onReady = function () {
       var drawer = _this.drawer = ws.drawer;
-      _this.container = 'string' == typeof params.container ? document.querySelector(params.container) : params.container;
+      _this.container = "string" == typeof params.container ? document.querySelector(params.container) : params.container;
       if (!_this.container) {
-        throw Error('No container for WaveSurfer spectrogram');
+        throw Error("No container for WaveSurfer spectrogram");
       }
       if (params.colorMap) {
         if (params.colorMap.length < 256) {
-          throw new Error('Colormap must contain 256 elements');
+          throw new Error("Colormap must contain 256 elements");
         }
         for (var i = 0; i < params.colorMap.length; i++) {
           var cmEntry = params.colorMap[i];
           if (cmEntry.length !== 4) {
-            throw new Error('ColorMap entries must contain 4 values');
+            throw new Error("ColorMap entries must contain 4 values");
           }
         }
         _this.colorMap = params.colorMap;
@@ -384,8 +380,8 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
       _this.createWrapper();
       _this.createCanvas();
       _this.render();
-      drawer.wrapper.addEventListener('scroll', _this._onScroll);
-      ws.on('redraw', _this._onRender);
+      drawer.wrapper.addEventListener("scroll", _this._onScroll);
+      ws.on("redraw", _this._onRender);
     };
   }
   _createClass(SpectrogramPlugin, [{
@@ -395,21 +391,21 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
       if (this.wavesurfer.isReady) {
         this._onReady();
       } else {
-        this.wavesurfer.once('ready', this._onReady);
+        this.wavesurfer.once("ready", this._onReady);
       }
     }
   }, {
     key: "destroy",
     value: function destroy() {
       this.unAll();
-      this.wavesurfer.un('ready', this._onReady);
-      this.wavesurfer.un('redraw', this._onRender);
-      this.drawer && this.drawer.wrapper.removeEventListener('scroll', this._onScroll);
+      this.wavesurfer.un("ready", this._onReady);
+      this.wavesurfer.un("redraw", this._onRender);
+      this.drawer && this.drawer.wrapper.removeEventListener("scroll", this._onScroll);
       this.wavesurfer = null;
       this.util = null;
       this.params = null;
       if (this.wrapper) {
-        this.wrapper.removeEventListener('click', this._onWrapperClick);
+        this.wrapper.removeEventListener("click", this._onWrapperClick);
         this.wrapper.parentNode.removeChild(this.wrapper);
         this.wrapper = null;
       }
@@ -417,57 +413,57 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
   }, {
     key: "createWrapper",
     value: function createWrapper() {
-      var prevSpectrogram = this.container.querySelector('spectrogram');
+      var prevSpectrogram = this.container.querySelector("spectrogram");
       if (prevSpectrogram) {
         this.container.removeChild(prevSpectrogram);
       }
       var wsParams = this.wavesurfer.params;
-      this.wrapper = document.createElement('spectrogram');
+      this.wrapper = document.createElement("spectrogram");
       // if labels are active
       if (this.params.labels) {
-        var labelsEl = this.labelsEl = document.createElement('canvas');
-        labelsEl.classList.add('spec-labels');
+        var labelsEl = this.labelsEl = document.createElement("canvas");
+        labelsEl.classList.add("spec-labels");
         this.drawer.style(labelsEl, {
           left: 0,
-          position: 'absolute',
+          position: "absolute",
           zIndex: 9,
           height: "".concat(this.height / this.pixelRatio, "px"),
           width: "".concat(55 / this.pixelRatio, "px")
         });
         this.wrapper.appendChild(labelsEl);
-        this.loadLabels('rgba(68,68,68,0.5)', '12px', '10px', '', '#fff', '#f7f7f7', 'center', '#specLabels');
+        this.loadLabels("rgba(68,68,68,0.5)", "12px", "10px", "", "#fff", "#f7f7f7", "center", "#specLabels");
       }
       this.drawer.style(this.wrapper, {
-        display: 'block',
-        position: 'relative',
-        userSelect: 'none',
-        webkitUserSelect: 'none',
+        display: "block",
+        position: "relative",
+        userSelect: "none",
+        webkitUserSelect: "none",
         height: "".concat(this.height / this.pixelRatio, "px")
       });
       if (wsParams.fillParent || wsParams.scrollParent) {
         this.drawer.style(this.wrapper, {
-          width: '100%',
-          overflowX: 'hidden',
-          overflowY: 'hidden'
+          width: "100%",
+          overflowX: "hidden",
+          overflowY: "hidden"
         });
       }
       this.container.appendChild(this.wrapper);
-      this.wrapper.addEventListener('click', this._onWrapperClick);
+      this.wrapper.addEventListener("click", this._onWrapperClick);
     }
   }, {
     key: "_wrapperClickHandler",
     value: function _wrapperClickHandler(event) {
       event.preventDefault();
-      var relX = 'offsetX' in event ? event.offsetX : event.layerX;
-      this.fireEvent('click', relX / this.width || 0);
+      var relX = "offsetX" in event ? event.offsetX : event.layerX;
+      this.fireEvent("click", relX / this.width || 0);
     }
   }, {
     key: "createCanvas",
     value: function createCanvas() {
-      var canvas = this.canvas = this.wrapper.appendChild(document.createElement('canvas'));
-      this.spectrCc = canvas.getContext('2d');
+      var canvas = this.canvas = this.wrapper.appendChild(document.createElement("canvas"));
+      this.spectrCc = canvas.getContext("2d");
       this.util.style(canvas, {
-        position: 'absolute',
+        position: "absolute",
         zIndex: 4
       });
     }
@@ -484,7 +480,7 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
   }, {
     key: "updateCanvasStyle",
     value: function updateCanvasStyle() {
-      var width = Math.round(this.width / this.pixelRatio) + 'px';
+      var width = Math.round(this.width / this.pixelRatio) + "px";
       this.canvas.width = this.width;
       this.canvas.height = this.height;
       this.canvas.style.width = width;
@@ -499,7 +495,7 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
       var sampleRate = buffer.sampleRate;
       var frequencies = [];
       if (!buffer) {
-        this.fireEvent('error', 'Web Audio buffer is not available');
+        this.fireEvent("error", "Web Audio buffer is not available");
         return;
       }
       var noverlap = this.noverlap;
@@ -530,11 +526,11 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
       var request = this.util.fetchFile({
         url: url
       });
-      request.on('success', function (data) {
-        return _this2.drawSpectrogram(JSON.parse(data), _this2);
+      request.on("success", function (data) {
+        return _this2.drawSpectrogram(JSON.parse(data));
       });
-      request.on('error', function (e) {
-        return _this2.fireEvent('error', e);
+      request.on("error", function (e) {
+        return _this2.fireEvent("error", e);
       });
       return request;
     }
@@ -546,20 +542,20 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
   }, {
     key: "unitType",
     value: function unitType(freq) {
-      return freq >= 1000 ? 'KHz' : 'Hz';
+      return freq >= 1000 ? "KHz" : "Hz";
     }
   }, {
     key: "loadLabels",
     value: function loadLabels(bgFill, fontSizeFreq, fontSizeUnit, fontType, textColorFreq, textColorUnit, textAlign, container) {
       var frequenciesHeight = this.height;
-      bgFill = bgFill || 'rgba(68,68,68,0)';
-      fontSizeFreq = fontSizeFreq || '12px';
-      fontSizeUnit = fontSizeUnit || '10px';
-      fontType = fontType || 'Helvetica';
-      textColorFreq = textColorFreq || '#fff';
-      textColorUnit = textColorUnit || '#fff';
-      textAlign = textAlign || 'center';
-      container = container || '#specLabels';
+      bgFill = bgFill || "rgba(68,68,68,0)";
+      fontSizeFreq = fontSizeFreq || "12px";
+      fontSizeUnit = fontSizeUnit || "10px";
+      fontType = fontType || "Helvetica";
+      textColorFreq = textColorFreq || "#fff";
+      textColorUnit = textColorUnit || "#fff";
+      textAlign = textAlign || "center";
+      container = container || "#specLabels";
       var bgWidth = 55;
       var getMaxY = frequenciesHeight || 512;
       var labelIndex = 5 * (getMaxY / 256);
@@ -567,7 +563,7 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
       var step = (this.wavesurfer.backend.ac.sampleRate / 2 - freqStart) / labelIndex;
 
       // prepare canvas element for labels
-      var ctx = this.labelsEl.getContext('2d');
+      var ctx = this.labelsEl.getContext("2d");
       this.labelsEl.height = this.height;
       this.labelsEl.width = bgWidth;
       var scale = this.height / (this.wavesurfer.backend.ac.sampleRate / 2);
@@ -581,7 +577,7 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
         // render labels
         for (i = 0; i <= labelIndex; i++) {
           ctx.textAlign = textAlign;
-          ctx.textBaseline = 'middle';
+          ctx.textBaseline = "middle";
           var freq = freqStart + step * i;
           var label = this.freqType(freq);
           var units = this.unitType(freq);
@@ -590,11 +586,11 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
           var y = freq * scale;
           y = this.height - y - 10;
           ctx.fillStyle = textColorUnit;
-          ctx.font = fontSizeUnit + ' ' + fontType;
+          ctx.font = fontSizeUnit + " " + fontType;
           ctx.fillText(units, x + 24, y);
           // freq label
           ctx.fillStyle = textColorFreq;
-          ctx.font = fontSizeFreq + ' ' + fontType;
+          ctx.font = fontSizeFreq + " " + fontType;
           ctx.fillText(label, x, y);
         }
       }
@@ -659,7 +655,7 @@ var SpectrogramPlugin = /*#__PURE__*/function () {
      */
     function create(params) {
       return {
-        name: 'spectrogram',
+        name: "spectrogram",
         deferInit: params && params.deferInit ? params.deferInit : false,
         params: params,
         staticProps: {

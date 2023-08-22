@@ -1,6 +1,6 @@
 /* eslint-enable complexity, no-redeclare, no-var, one-var */
 
-import FFT from './fft';
+import FFT from "./fft";
 
 /**
  * @typedef {Object} SpectrogramPluginParams
@@ -63,13 +63,13 @@ export default class SpectrogramPlugin {
      */
     static create(params) {
         return {
-            name: 'spectrogram',
+            name: "spectrogram",
             deferInit: params && params.deferInit ? params.deferInit : false,
             params: params,
             staticProps: {
-                FFT: FFT
+                FFT: FFT,
             },
-            instance: SpectrogramPlugin
+            instance: SpectrogramPlugin,
         };
     }
 
@@ -79,35 +79,35 @@ export default class SpectrogramPlugin {
         this.util = ws.util;
 
         this.frequenciesDataUrl = params.frequenciesDataUrl;
-        this._onScroll = e => {
+        this._onScroll = (e) => {
             this.updateScroll(e);
         };
         this._onRender = () => {
             this.render();
         };
-        this._onWrapperClick = e => {
+        this._onWrapperClick = (e) => {
             this._wrapperClickHandler(e);
         };
         this._onReady = () => {
             const drawer = (this.drawer = ws.drawer);
 
             this.container =
-                'string' == typeof params.container
+                "string" == typeof params.container
                     ? document.querySelector(params.container)
                     : params.container;
 
             if (!this.container) {
-                throw Error('No container for WaveSurfer spectrogram');
+                throw Error("No container for WaveSurfer spectrogram");
             }
             if (params.colorMap) {
                 if (params.colorMap.length < 256) {
-                    throw new Error('Colormap must contain 256 elements');
+                    throw new Error("Colormap must contain 256 elements");
                 }
                 for (let i = 0; i < params.colorMap.length; i++) {
                     const cmEntry = params.colorMap[i];
                     if (cmEntry.length !== 4) {
                         throw new Error(
-                            'ColorMap entries must contain 4 values'
+                            "ColorMap entries must contain 4 values"
                         );
                     }
                 }
@@ -132,8 +132,8 @@ export default class SpectrogramPlugin {
             this.createCanvas();
             this.render();
 
-            drawer.wrapper.addEventListener('scroll', this._onScroll);
-            ws.on('redraw', this._onRender);
+            drawer.wrapper.addEventListener("scroll", this._onScroll);
+            ws.on("redraw", this._onRender);
         };
     }
 
@@ -142,92 +142,93 @@ export default class SpectrogramPlugin {
         if (this.wavesurfer.isReady) {
             this._onReady();
         } else {
-            this.wavesurfer.once('ready', this._onReady);
+            this.wavesurfer.once("ready", this._onReady);
         }
     }
 
     destroy() {
         this.unAll();
-        this.wavesurfer.un('ready', this._onReady);
-        this.wavesurfer.un('redraw', this._onRender);
-        this.drawer && this.drawer.wrapper.removeEventListener('scroll', this._onScroll);
+        this.wavesurfer.un("ready", this._onReady);
+        this.wavesurfer.un("redraw", this._onRender);
+        this.drawer &&
+            this.drawer.wrapper.removeEventListener("scroll", this._onScroll);
         this.wavesurfer = null;
         this.util = null;
         this.params = null;
         if (this.wrapper) {
-            this.wrapper.removeEventListener('click', this._onWrapperClick);
+            this.wrapper.removeEventListener("click", this._onWrapperClick);
             this.wrapper.parentNode.removeChild(this.wrapper);
             this.wrapper = null;
         }
     }
 
     createWrapper() {
-        const prevSpectrogram = this.container.querySelector('spectrogram');
+        const prevSpectrogram = this.container.querySelector("spectrogram");
         if (prevSpectrogram) {
             this.container.removeChild(prevSpectrogram);
         }
         const wsParams = this.wavesurfer.params;
-        this.wrapper = document.createElement('spectrogram');
+        this.wrapper = document.createElement("spectrogram");
         // if labels are active
         if (this.params.labels) {
-            const labelsEl = (this.labelsEl = document.createElement('canvas'));
-            labelsEl.classList.add('spec-labels');
+            const labelsEl = (this.labelsEl = document.createElement("canvas"));
+            labelsEl.classList.add("spec-labels");
             this.drawer.style(labelsEl, {
                 left: 0,
-                position: 'absolute',
+                position: "absolute",
                 zIndex: 9,
                 height: `${this.height / this.pixelRatio}px`,
-                width: `${55 / this.pixelRatio}px`
+                width: `${55 / this.pixelRatio}px`,
             });
             this.wrapper.appendChild(labelsEl);
             this.loadLabels(
-                'rgba(68,68,68,0.5)',
-                '12px',
-                '10px',
-                '',
-                '#fff',
-                '#f7f7f7',
-                'center',
-                '#specLabels'
+                "rgba(68,68,68,0.5)",
+                "12px",
+                "10px",
+                "",
+                "#fff",
+                "#f7f7f7",
+                "center",
+                "#specLabels"
             );
         }
 
         this.drawer.style(this.wrapper, {
-            display: 'block',
-            position: 'relative',
-            userSelect: 'none',
-            webkitUserSelect: 'none',
-            height: `${this.height / this.pixelRatio}px`
+            display: "block",
+            position: "relative",
+            userSelect: "none",
+            webkitUserSelect: "none",
+            height: `${this.height / this.pixelRatio}px`,
         });
 
         if (wsParams.fillParent || wsParams.scrollParent) {
             this.drawer.style(this.wrapper, {
-                width: '100%',
-                overflowX: 'hidden',
-                overflowY: 'hidden'
+                width: "100%",
+                overflowX: "hidden",
+                overflowY: "hidden",
             });
         }
         this.container.appendChild(this.wrapper);
 
-        this.wrapper.addEventListener('click', this._onWrapperClick);
+        this.wrapper.addEventListener("click", this._onWrapperClick);
     }
 
     _wrapperClickHandler(event) {
         event.preventDefault();
-        const relX = 'offsetX' in event ? event.offsetX : event.layerX;
-        this.fireEvent('click', relX / this.width || 0);
+        const relX = "offsetX" in event ? event.offsetX : event.layerX;
+        this.fireEvent("click", relX / this.width || 0);
     }
 
     createCanvas() {
         const canvas = (this.canvas = this.wrapper.appendChild(
-            document.createElement('canvas')
+            document.createElement("canvas")
         ));
 
-        this.spectrCc = canvas.getContext('2d');
+        this.spectrCc = canvas.getContext("2d");
 
         this.util.style(canvas, {
-            position: 'absolute',
-            zIndex: 4
+            position: "absolute",
+            zIndex: 4,
         });
     }
 
@@ -242,12 +243,12 @@ export default class SpectrogramPlugin {
     }
 
     updateCanvasStyle() {
-        const width = Math.round(this.width / this.pixelRatio) + 'px';
+        const width = Math.round(this.width / this.pixelRatio) + "px";
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         this.canvas.style.width = width;
     }
-    drawSpectrogram = async(frequenciesData) => {
+    drawSpectrogram = async (frequenciesData) => {
         if (!isNaN(frequenciesData[0][0])) {
             // data is 1ch [sample, freq] format
             // to [channel, sample, freq] format
@@ -255,7 +256,7 @@ export default class SpectrogramPlugin {
         }
 
         // Set the height to fit all channels
-        this.wrapper.style.height = this.height * frequenciesData.length + 'px';
+        this.wrapper.style.height = this.height * frequenciesData.length + "px";
 
         this.canvas.width = this.width;
         this.canvas.height = this.height * frequenciesData.length;
@@ -281,7 +282,7 @@ export default class SpectrogramPlugin {
             }
 
             const renderer = await createImageBitmap(imageData);
-            await spectrCc.drawImage(
+            spectrCc.drawImage(
                 renderer,
                 0,
                 0,
@@ -290,24 +291,10 @@ export default class SpectrogramPlugin {
                 0,
                 0,
                 this.width,
-                this.height, // destination width, height
+                this.height // destination width, height
             );
         }
-
-        this.loadLabels(
-            this.options.labelsBackground,
-            '12px',
-            '12px',
-            '',
-            this.options.labelsColor,
-            this.options.labelsHzColor || this.options.labelsColor,
-            'center',
-            '#specLabels',
-            frequenciesData.length,
-        );
-
-        this.emit('ready');
-    }
+    };
 
     getFrequencies(callback) {
         const fftSamples = this.fftSamples;
@@ -318,7 +305,7 @@ export default class SpectrogramPlugin {
         const frequencies = [];
 
         if (!buffer) {
-            this.fireEvent('error', 'Web Audio buffer is not available');
+            this.fireEvent("error", "Web Audio buffer is not available");
             return;
         }
 
@@ -359,10 +346,10 @@ export default class SpectrogramPlugin {
     loadFrequenciesData(url) {
         const request = this.util.fetchFile({ url: url });
 
-        request.on('success', data =>
-            this.drawSpectrogram(JSON.parse(data), this)
+        request.on("success", (data) =>
+            this.drawSpectrogram(JSON.parse(data))
         );
-        request.on('error', e => this.fireEvent('error', e));
+        request.on("error", (e) => this.fireEvent("error", e));
 
         return request;
     }
@@ -372,7 +359,7 @@ export default class SpectrogramPlugin {
     }
 
     unitType(freq) {
-        return freq >= 1000 ? 'KHz' : 'Hz';
+        return freq >= 1000 ? "KHz" : "Hz";
     }
 
     loadLabels(
@@ -386,14 +373,14 @@ export default class SpectrogramPlugin {
         container
     ) {
         const frequenciesHeight = this.height;
-        bgFill = bgFill || 'rgba(68,68,68,0)';
-        fontSizeFreq = fontSizeFreq || '12px';
-        fontSizeUnit = fontSizeUnit || '10px';
-        fontType = fontType || 'Helvetica';
-        textColorFreq = textColorFreq || '#fff';
-        textColorUnit = textColorUnit || '#fff';
-        textAlign = textAlign || 'center';
-        container = container || '#specLabels';
+        bgFill = bgFill || "rgba(68,68,68,0)";
+        fontSizeFreq = fontSizeFreq || "12px";
+        fontSizeUnit = fontSizeUnit || "10px";
+        fontType = fontType || "Helvetica";
+        textColorFreq = textColorFreq || "#fff";
+        textColorUnit = textColorUnit || "#fff";
+        textAlign = textAlign || "center";
+        container = container || "#specLabels";
         const bgWidth = 55;
         const getMaxY = frequenciesHeight || 512;
         const labelIndex = 5 * (getMaxY / 256);
@@ -403,10 +390,10 @@ export default class SpectrogramPlugin {
             labelIndex;
 
         // prepare canvas element for labels
-        const ctx = this.labelsEl.getContext('2d');
+        const ctx = this.labelsEl.getContext("2d");
         this.labelsEl.height = this.height;
         this.labelsEl.width = bgWidth;
-        const scale = this.height / (this.wavesurfer.backend.ac.sampleRate / 2 );
+        const scale = this.height / (this.wavesurfer.backend.ac.sampleRate / 2);
         if (ctx) {
             // fill background
             ctx.fillStyle = bgFill;
@@ -417,7 +404,7 @@ export default class SpectrogramPlugin {
             // render labels
             for (i = 0; i <= labelIndex; i++) {
                 ctx.textAlign = textAlign;
-                ctx.textBaseline = 'middle';
+                ctx.textBaseline = "middle";
 
                 const freq = freqStart + step * i;
                 const label = this.freqType(freq);
@@ -427,11 +414,11 @@ export default class SpectrogramPlugin {
                 let y = freq * scale;
                 y = this.height - y - 10;
                 ctx.fillStyle = textColorUnit;
-                ctx.font = fontSizeUnit + ' ' + fontType;
+                ctx.font = fontSizeUnit + " " + fontType;
                 ctx.fillText(units, x + 24, y);
                 // freq label
                 ctx.fillStyle = textColorFreq;
-                ctx.font = fontSizeFreq + ' ' + fontType;
+                ctx.font = fontSizeFreq + " " + fontType;
                 ctx.fillText(label, x, y);
             }
         }
@@ -465,13 +452,13 @@ export default class SpectrogramPlugin {
                     oldEnd <= newStart || newEnd <= oldStart
                         ? 0
                         : Math.min(
-                            Math.max(oldEnd, newStart),
-                            Math.max(newEnd, oldStart)
-                        ) -
-                        Math.max(
-                            Math.min(oldEnd, newStart),
-                            Math.min(newEnd, oldStart)
-                        );
+                              Math.max(oldEnd, newStart),
+                              Math.max(newEnd, oldStart)
+                          ) -
+                          Math.max(
+                              Math.min(oldEnd, newStart),
+                              Math.min(newEnd, oldStart)
+                          );
                 let k;
                 /* eslint-disable max-depth */
                 if (overlap > 0) {
